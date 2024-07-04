@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\rohit\\.net project\\CompanyApp copy\\CompanyApp.csproj": {}
+    "C:\\Users\\rohit\\.net project\\Downgrade\\CompanyAppDowngrade\\CompanyApp.csproj": {}
   },
   "projects": {
-    "C:\\Users\\rohit\\.net project\\CompanyApp copy\\CompanyApp.csproj": {
+    "C:\\Users\\rohit\\.net project\\Downgrade\\CompanyAppDowngrade\\CompanyApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\rohit\\.net project\\CompanyApp copy\\CompanyApp.csproj",
+        "projectUniqueName": "C:\\Users\\rohit\\.net project\\Downgrade\\CompanyAppDowngrade\\CompanyApp.csproj",
         "projectName": "CompanyApp",
-        "projectPath": "C:\\Users\\rohit\\.net project\\CompanyApp copy\\CompanyApp.csproj",
+        "projectPath": "C:\\Users\\rohit\\.net project\\Downgrade\\CompanyAppDowngrade\\CompanyApp.csproj",
         "packagesPath": "C:\\Users\\rohit\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\rohit\\.net project\\CompanyApp copy\\obj\\",
+        "outputPath": "C:\\Users\\rohit\\.net project\\Downgrade\\CompanyAppDowngrade\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\rohit\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -54,6 +54,10 @@
             "Mapster": {
               "target": "Package",
               "version": "[7.3.0, )"
+            },
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[7.0.20, )"
             },
             "Microsoft.AspNetCore.Mvc.NewtonsoftJson": {
               "target": "Package",

@@ -1,13 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 using CompanyApp.Data;
 using CompanyApp.Models.Entity;
 using CompanyApp.Models.DTO.Create;
 using CompanyApp.Models.DTO.Update;
 using CompanyApp.Mapper.MapperService;
+using CompanyApp.Identity;
 
 namespace CompanyApp.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 public class ProductController : ControllerBase {
@@ -70,6 +73,7 @@ public class ProductController : ControllerBase {
         return Ok(existingProduct);
     }
 
+    [Authorize(Policy = IdentityConstants.PolicyName1)]
     [HttpDelete("deleteProduct/{id}")]
     public ActionResult DeleteProduct(byte id)
     {

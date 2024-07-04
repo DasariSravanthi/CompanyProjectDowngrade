@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "hR9gNTJY0CE=",
+  "dgSpecHash": "Mt+XWoqX0Hw=",
   "success": true,
-  "projectFilePath": "C:\\Users\\rohit\\.net project\\CompanyApp copy\\CompanyApp.csproj",
+  "projectFilePath": "C:\\Users\\rohit\\.net project\\Downgrade\\CompanyAppDowngrade\\CompanyApp.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\rohit\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\rohit\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
@@ -11,6 +11,7 @@
     "C:\\Users\\rohit\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\rohit\\.nuget\\packages\\mapster\\7.3.0\\mapster.7.3.0.nupkg.sha512",
     "C:\\Users\\rohit\\.nuget\\packages\\mapster.core\\1.2.0\\mapster.core.1.2.0.nupkg.sha512",
+    "C:\\Users\\rohit\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\7.0.20\\microsoft.aspnetcore.authentication.jwtbearer.7.0.20.nupkg.sha512",
     "C:\\Users\\rohit\\.nuget\\packages\\microsoft.aspnetcore.jsonpatch\\7.0.20\\microsoft.aspnetcore.jsonpatch.7.0.20.nupkg.sha512",
     "C:\\Users\\rohit\\.nuget\\packages\\microsoft.aspnetcore.mvc.newtonsoftjson\\7.0.20\\microsoft.aspnetcore.mvc.newtonsoftjson.7.0.20.nupkg.sha512",
     "C:\\Users\\rohit\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\1.1.1\\microsoft.bcl.asyncinterfaces.1.1.1.nupkg.sha512",

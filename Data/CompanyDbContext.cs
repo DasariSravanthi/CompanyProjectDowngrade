@@ -111,52 +111,64 @@ public class CompanyDbContext : DbContext
             .HasForeignKey(_ => _.ProductionSlittingId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Define Value Converter for DateOnly to DateTime
+        var dateOnlyConverter = new ValueConverter<DateOnly, DateTime>(
+            d => d.ToDateTime(TimeOnly.MinValue),      // Convert DateOnly to DateTime for storage
+            d => DateOnly.FromDateTime(d)              // Convert DateTime back to DateOnly
+        );
+
+        // Define Value Converter for TimeOnly to TimeSpan
+        var timeOnlyConverter = new ValueConverter<TimeOnly, TimeSpan>(
+            t => t.ToTimeSpan(),                       // Convert TimeOnly to TimeSpan for storage
+            t => TimeOnly.FromTimeSpan(t)              // Convert TimeSpan back to TimeOnly
+        );
+
         modelBuilder.Entity<Receipt>()
             .Property(e => e.ReceiptDate)
-            .HasConversion(DateOnlyToDateTimeConverter);
+            .HasConversion(dateOnlyConverter);
 
         modelBuilder.Entity<Receipt>()
             .Property(e => e.BillDate)
-            .HasConversion(DateOnlyToDateTimeConverter);
+            .HasConversion(dateOnlyConverter);
 
         modelBuilder.Entity<Issue>()
             .Property(e => e.IssueDate)
-            .HasConversion(DateOnlyToDateTimeConverter);
+            .HasConversion(dateOnlyConverter);
 
         modelBuilder.Entity<ProductionCoating>()
             .Property(e => e.ProductionCoatingDate)
-            .HasConversion(DateOnlyToDateTimeConverter);
+            .HasConversion(dateOnlyConverter);
 
         modelBuilder.Entity<ProductionCoating>()
             .Property(e => e.CoatingStart)
-            .HasConversion(TimeOnlyToTimeSpanConverter);
+            .HasConversion(timeOnlyConverter);
 
         modelBuilder.Entity<ProductionCoating>()
             .Property(e => e.CoatingEnd)
-            .HasConversion(TimeOnlyToTimeSpanConverter);
+            .HasConversion(timeOnlyConverter);
 
         modelBuilder.Entity<ProductionCalendaring>()
             .Property(e => e.ProductionCoatingDate)
-            .HasConversion(DateOnlyToDateTimeConverter);
+            .HasConversion(dateOnlyConverter);
 
         modelBuilder.Entity<ProductionCalendaring>()
             .Property(e => e.CalendaringStart)
-            .HasConversion(TimeOnlyToTimeSpanConverter);
+            .HasConversion(timeOnlyConverter);
 
         modelBuilder.Entity<ProductionCalendaring>()
             .Property(e => e.CalendaringEnd)
-            .HasConversion(TimeOnlyToTimeSpanConverter);
+            .HasConversion(timeOnlyConverter);
 
         modelBuilder.Entity<ProductionSlitting>()
             .Property(e => e.ProductionCoatingDate)
-            .HasConversion(DateOnlyToDateTimeConverter);
+            .HasConversion(dateOnlyConverter);
 
         modelBuilder.Entity<ProductionSlitting>()
             .Property(e => e.SlittingStart)
-            .HasConversion(TimeOnlyToTimeSpanConverter);
+            .HasConversion(timeOnlyConverter);
 
         modelBuilder.Entity<ProductionSlitting>()
             .Property(e => e.SlittingEnd)
-            .HasConversion(TimeOnlyToTimeSpanConverter);
+            .HasConversion(timeOnlyConverter);
     }
 }
