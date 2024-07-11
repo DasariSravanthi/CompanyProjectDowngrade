@@ -6,11 +6,24 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace CompanyApp.Migrations
 {
     /// <inheritdoc />
-    public partial class All : Migration
+    public partial class AllDown : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Products",
+                columns: table => new
+                {
+                    P_Id = table.Column<byte>(type: "tinyint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Product_Category = table.Column<string>(type: "varchar(100)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Products", x => x.P_Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Sizes",
                 columns: table => new
@@ -39,6 +52,65 @@ namespace CompanyApp.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Username = table.Column<string>(type: "varchar(256)", nullable: false),
+                    Password = table.Column<string>(type: "varchar(256)", nullable: false),
+                    Email = table.Column<string>(type: "varchar(256)", nullable: false),
+                    Role = table.Column<string>(type: "varchar(256)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.UserId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProductDetails",
+                columns: table => new
+                {
+                    PD_Id = table.Column<byte>(type: "tinyint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    P_Id = table.Column<byte>(type: "tinyint", nullable: false),
+                    Variant = table.Column<string>(type: "varchar(100)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductDetails", x => x.PD_Id);
+                    table.ForeignKey(
+                        name: "FK_ProductDetails_Products_P_Id",
+                        column: x => x.P_Id,
+                        principalTable: "Products",
+                        principalColumn: "P_Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Receipts",
+                columns: table => new
+                {
+                    R_Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    R_Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    S_Id = table.Column<byte>(type: "tinyint", nullable: false),
+                    Bill_No = table.Column<string>(type: "varchar(100)", nullable: false),
+                    Bill_Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Bill_Value = table.Column<double>(type: "float", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Receipts", x => x.R_Id);
+                    table.ForeignKey(
+                        name: "FK_Receipts_Suppliers_S_Id",
+                        column: x => x.S_Id,
+                        principalTable: "Suppliers",
+                        principalColumn: "S_Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ProductStocks",
                 columns: table => new
                 {
@@ -46,7 +118,7 @@ namespace CompanyApp.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     PD_Id = table.Column<byte>(type: "tinyint", nullable: false),
                     GSM = table.Column<byte>(type: "tinyint", nullable: true),
-                    Size_Id = table.Column<byte>(type: "tinyint", nullable: true),
+                    Size_Id = table.Column<byte>(type: "tinyint", nullable: false),
                     Weight = table.Column<short>(type: "smallint", nullable: false),
                     Roll_Count = table.Column<byte>(type: "tinyint", nullable: true)
                 },
@@ -65,29 +137,6 @@ namespace CompanyApp.Migrations
                         principalTable: "Sizes",
                         principalColumn: "Size_Id",
                         onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Receipts",
-                columns: table => new
-                {
-                    R_Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    R_Date = table.Column<DateOnly>(type: "date", nullable: false),
-                    S_Id = table.Column<byte>(type: "tinyint", nullable: false),
-                    Bill_No = table.Column<string>(type: "varchar(100)", nullable: false),
-                    Bill_Date = table.Column<DateOnly>(type: "date", nullable: false),
-                    Bill_Value = table.Column<double>(type: "float", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Receipts", x => x.R_Id);
-                    table.ForeignKey(
-                        name: "FK_Receipts_Suppliers_S_Id",
-                        column: x => x.S_Id,
-                        principalTable: "Suppliers",
-                        principalColumn: "S_Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -145,8 +194,8 @@ namespace CompanyApp.Migrations
                 {
                     Issue_Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    I_Date = table.Column<DateOnly>(type: "date", nullable: false),
-                    RN_Id = table.Column<int>(type: "int", nullable: true),
+                    I_Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RN_Id = table.Column<int>(type: "int", nullable: false),
                     PS_Id = table.Column<short>(type: "smallint", nullable: false),
                     Roll_No = table.Column<string>(type: "varchar(100)", nullable: true),
                     Weight = table.Column<float>(type: "real", nullable: false),
@@ -175,10 +224,10 @@ namespace CompanyApp.Migrations
                 {
                     P_Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    P_Date = table.Column<DateOnly>(type: "date", nullable: false),
+                    P_Date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Issue_Id = table.Column<int>(type: "int", nullable: false),
-                    Coating_Start = table.Column<TimeOnly>(type: "time", nullable: false),
-                    Coating_End = table.Column<TimeOnly>(type: "time", nullable: false),
+                    Coating_Start = table.Column<TimeSpan>(type: "time", nullable: false),
+                    Coating_End = table.Column<TimeSpan>(type: "time", nullable: false),
                     Avg_Speed = table.Column<byte>(type: "tinyint", nullable: false),
                     Avg_Temperature = table.Column<byte>(type: "tinyint", nullable: false),
                     GSM_Coated = table.Column<byte>(type: "tinyint", nullable: false),
@@ -201,13 +250,13 @@ namespace CompanyApp.Migrations
                 {
                     PC_Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    P_Date = table.Column<DateOnly>(type: "date", nullable: false),
+                    P_Date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     P_Id = table.Column<int>(type: "int", nullable: false),
                     Roll_No = table.Column<string>(type: "varchar(100)", nullable: false),
                     Before_Weight = table.Column<float>(type: "real", nullable: false),
                     Before_Moisture = table.Column<float>(type: "real", nullable: false),
-                    Calendaring_Start = table.Column<TimeOnly>(type: "time", nullable: false),
-                    Calendaring_End = table.Column<TimeOnly>(type: "time", nullable: false),
+                    Calendaring_Start = table.Column<TimeSpan>(type: "time", nullable: false),
+                    Calendaring_End = table.Column<TimeSpan>(type: "time", nullable: false),
                     Roll_Count = table.Column<byte>(type: "tinyint", nullable: false)
                 },
                 constraints: table =>
@@ -227,13 +276,13 @@ namespace CompanyApp.Migrations
                 {
                     PS_Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    P_Date = table.Column<DateOnly>(type: "date", nullable: false),
+                    P_Date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     PC_Id = table.Column<int>(type: "int", nullable: false),
                     Roll_No = table.Column<string>(type: "varchar(100)", nullable: false),
                     Before_Weight = table.Column<float>(type: "real", nullable: false),
                     Before_Moisture = table.Column<float>(type: "real", nullable: false),
-                    Slitting_Start = table.Column<TimeOnly>(type: "time", nullable: false),
-                    Slitting_End = table.Column<TimeOnly>(type: "time", nullable: false),
+                    Slitting_Start = table.Column<TimeSpan>(type: "time", nullable: false),
+                    Slitting_End = table.Column<TimeSpan>(type: "time", nullable: false),
                     Roll_Count = table.Column<byte>(type: "tinyint", nullable: false)
                 },
                 constraints: table =>
@@ -278,6 +327,11 @@ namespace CompanyApp.Migrations
                 name: "IX_Issues_RN_Id",
                 table: "Issues",
                 column: "RN_Id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductDetails_P_Id",
+                table: "ProductDetails",
+                column: "P_Id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProductionCalendarings_P_Id",
@@ -328,6 +382,18 @@ namespace CompanyApp.Migrations
                 name: "IX_SlittingDetails_PS_Id",
                 table: "SlittingDetails",
                 column: "PS_Id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Email",
+                table: "Users",
+                column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Username",
+                table: "Users",
+                column: "Username",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -335,6 +401,9 @@ namespace CompanyApp.Migrations
         {
             migrationBuilder.DropTable(
                 name: "SlittingDetails");
+
+            migrationBuilder.DropTable(
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "ProductionSlittings");
@@ -361,10 +430,16 @@ namespace CompanyApp.Migrations
                 name: "Receipts");
 
             migrationBuilder.DropTable(
+                name: "ProductDetails");
+
+            migrationBuilder.DropTable(
                 name: "Sizes");
 
             migrationBuilder.DropTable(
                 name: "Suppliers");
+
+            migrationBuilder.DropTable(
+                name: "Products");
         }
     }
 }

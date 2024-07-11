@@ -12,15 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompanyApp.Migrations
 {
     [DbContext(typeof(CompanyDbContext))]
-    [Migration("20240616125952_All")]
-    partial class All
+    [Migration("20240711113209_AllDown")]
+    partial class AllDown
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.6")
+                .HasAnnotation("ProductVersion", "7.0.20")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -34,8 +34,8 @@ namespace CompanyApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IssueId"));
 
-                    b.Property<DateOnly>("IssueDate")
-                        .HasColumnType("date")
+                    b.Property<DateTime>("IssueDate")
+                        .HasColumnType("datetime2")
                         .HasColumnName("I_Date");
 
                     b.Property<float?>("Moisture")
@@ -50,6 +50,7 @@ namespace CompanyApp.Migrations
                         .HasColumnName("Roll_No");
 
                     b.Property<int?>("RollNumberId")
+                        .IsRequired()
                         .HasColumnType("int")
                         .HasColumnName("RN_Id");
 
@@ -129,6 +130,7 @@ namespace CompanyApp.Migrations
                         .HasColumnName("Roll_Count");
 
                     b.Property<byte?>("SizeId")
+                        .IsRequired()
                         .HasColumnType("tinyint")
                         .HasColumnName("Size_Id");
 
@@ -162,16 +164,16 @@ namespace CompanyApp.Migrations
                         .HasColumnType("real")
                         .HasColumnName("Before_Weight");
 
-                    b.Property<TimeOnly>("CalendaringEnd")
+                    b.Property<TimeSpan>("CalendaringEnd")
                         .HasColumnType("time")
                         .HasColumnName("Calendaring_End");
 
-                    b.Property<TimeOnly>("CalendaringStart")
+                    b.Property<TimeSpan>("CalendaringStart")
                         .HasColumnType("time")
                         .HasColumnName("Calendaring_Start");
 
-                    b.Property<DateOnly>("ProductionCoatingDate")
-                        .HasColumnType("date")
+                    b.Property<DateTime>("ProductionCoatingDate")
+                        .HasColumnType("datetime2")
                         .HasColumnName("P_Date");
 
                     b.Property<int>("ProductionCoatingId")
@@ -211,11 +213,11 @@ namespace CompanyApp.Migrations
                         .HasColumnType("tinyint")
                         .HasColumnName("Avg_Temperature");
 
-                    b.Property<TimeOnly>("CoatingEnd")
+                    b.Property<TimeSpan>("CoatingEnd")
                         .HasColumnType("time")
                         .HasColumnName("Coating_End");
 
-                    b.Property<TimeOnly>("CoatingStart")
+                    b.Property<TimeSpan>("CoatingStart")
                         .HasColumnType("time")
                         .HasColumnName("Coating_Start");
 
@@ -227,8 +229,8 @@ namespace CompanyApp.Migrations
                         .HasColumnType("int")
                         .HasColumnName("Issue_Id");
 
-                    b.Property<DateOnly>("ProductionCoatingDate")
-                        .HasColumnType("date")
+                    b.Property<DateTime>("ProductionCoatingDate")
+                        .HasColumnType("datetime2")
                         .HasColumnName("P_Date");
 
                     b.Property<byte>("RollCount")
@@ -263,8 +265,8 @@ namespace CompanyApp.Migrations
                         .HasColumnType("int")
                         .HasColumnName("PC_Id");
 
-                    b.Property<DateOnly>("ProductionCoatingDate")
-                        .HasColumnType("date")
+                    b.Property<DateTime>("ProductionCoatingDate")
+                        .HasColumnType("datetime2")
                         .HasColumnName("P_Date");
 
                     b.Property<byte>("RollCount")
@@ -276,11 +278,11 @@ namespace CompanyApp.Migrations
                         .HasColumnType("varchar(100)")
                         .HasColumnName("Roll_No");
 
-                    b.Property<TimeOnly>("SlittingEnd")
+                    b.Property<TimeSpan>("SlittingEnd")
                         .HasColumnType("time")
                         .HasColumnName("Slitting_End");
 
-                    b.Property<TimeOnly>("SlittingStart")
+                    b.Property<TimeSpan>("SlittingStart")
                         .HasColumnType("time")
                         .HasColumnName("Slitting_Start");
 
@@ -300,8 +302,8 @@ namespace CompanyApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReceiptId"));
 
-                    b.Property<DateOnly>("BillDate")
-                        .HasColumnType("date")
+                    b.Property<DateTime>("BillDate")
+                        .HasColumnType("datetime2")
                         .HasColumnName("Bill_Date");
 
                     b.Property<string>("BillNo")
@@ -313,8 +315,8 @@ namespace CompanyApp.Migrations
                         .HasColumnType("float")
                         .HasColumnName("Bill_Value");
 
-                    b.Property<DateOnly>("ReceiptDate")
-                        .HasColumnType("date")
+                    b.Property<DateTime>("ReceiptDate")
+                        .HasColumnType("datetime2")
                         .HasColumnName("R_Date");
 
                     b.Property<byte>("SupplierId")
@@ -461,6 +463,41 @@ namespace CompanyApp.Migrations
                     b.ToTable("Suppliers");
                 });
 
+            modelBuilder.Entity("CompanyApp.Models.Entity.User", b =>
+                {
+                    b.Property<int>("UserId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("varchar(256)");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Username")
+                        .IsUnique();
+
+                    b.ToTable("Users");
+                });
+
             modelBuilder.Entity("CompanyApp.Models.Entity.Issue", b =>
                 {
                     b.HasOne("CompanyApp.Models.Entity.ProductStock", "ProductStocks")
@@ -472,7 +509,8 @@ namespace CompanyApp.Migrations
                     b.HasOne("CompanyApp.Models.Entity.RollNumber", "RollNumbers")
                         .WithMany("Issues")
                         .HasForeignKey("RollNumberId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("ProductStocks");
 
@@ -501,7 +539,8 @@ namespace CompanyApp.Migrations
                     b.HasOne("CompanyApp.Models.Entity.Size", "Sizes")
                         .WithMany("ProductStocks")
                         .HasForeignKey("SizeId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("ProductDetails");
 

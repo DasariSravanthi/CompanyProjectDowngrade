@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Models;
 
 using CompanyApp.Data;
 using CompanyApp.Converter;
+using CompanyApp.Mapper.Configuration;
 using CompanyApp.Mapper.MapperService;
 using CompanyApp.Identity;
 

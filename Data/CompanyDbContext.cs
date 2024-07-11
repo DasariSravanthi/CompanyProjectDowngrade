@@ -30,6 +30,10 @@ public class CompanyDbContext : DbContext
     public virtual DbSet<ProductionSlitting> ProductionSlittings { get; set; }
     public virtual DbSet<SlittingDetail> SlittingDetails { get; set; }
 
+
+    public virtual DbSet<User> Users { get; set; }
+
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Configure the one-to-many relationship
@@ -170,5 +174,12 @@ public class CompanyDbContext : DbContext
         modelBuilder.Entity<ProductionSlitting>()
             .Property(e => e.SlittingEnd)
             .HasConversion(timeOnlyConverter);
+
+        
+        modelBuilder.Entity<User>(user =>
+        {
+            user.HasIndex(x => x.Username).IsUnique();
+            user.HasIndex(x => x.Email).IsUnique();
+        });
     }
 }

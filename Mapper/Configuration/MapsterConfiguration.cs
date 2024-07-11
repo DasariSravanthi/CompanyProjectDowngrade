@@ -4,7 +4,10 @@ using Newtonsoft.Json;
 using CompanyApp.Models.Entity;
 using CompanyApp.Models.DTO.Create;
 using CompanyApp.Models.DTO.Update;
+using CompanyApp.Models.DTO.User;
 using CompanyApp.Converter;
+
+namespace CompanyApp.Mapper.Configuration;
 
 public static class MapsterConfiguration
 {
@@ -92,13 +95,16 @@ public static class MapsterConfiguration
               .IgnoreNullValues(true);
 
         config.NewConfig<UpdateProductionSlittingDto, ProductionSlitting>()
-              .Map(dest => dest.ProductionCoatingDate, src => (src != null) ? DeserializeDateOnly(src.ProductionCoatingDate) : null)
+              .Map(dest => dest.ProductionCoatingDate, src => DeserializeDateOnly(src.ProductionCoatingDate))
               .Map(dest => dest.SlittingStart, src => DeserializeTimeOnly(src.SlittingStart))
               .Map(dest => dest.SlittingEnd, src => DeserializeTimeOnly(src.SlittingEnd))
               .IgnoreNullValues(true);
 
         config.NewConfig<UpdateSlittingDetailDto, SlittingDetail>()
               .IgnoreNullValues(true);
+
+
+        config.NewConfig<RegisterUserDto, User>();
         
     }
 

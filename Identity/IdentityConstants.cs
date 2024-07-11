@@ -1,5 +1,3 @@
-using System.Collections.ObjectModel;
-
 namespace CompanyApp.Identity;
 
 public class IdentityConstants {
@@ -7,7 +5,5 @@ public class IdentityConstants {
 
     public const string PolicyName2 = "User";
 
-    public static readonly ReadOnlyCollection<string> ClaimNames1 = new ReadOnlyCollection<string>(
-        new List<string> { "admin", "manager"}
-    );
+    public static readonly string[] ClaimNames1 = {"admin", "manager"};
 }
