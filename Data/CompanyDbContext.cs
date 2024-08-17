@@ -115,6 +115,14 @@ public class CompanyDbContext : DbContext
             .HasForeignKey(_ => _.ProductionSlittingId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<ProductStock>()
+            .Property(_ => _.SizeId)
+            .IsRequired(false); // Ensure it's optional
+
+        modelBuilder.Entity<Issue>()
+            .Property(_ => _.RollNumberId)
+            .IsRequired(false); // Ensure it's optional
+
         // Define Value Converter for DateOnly to DateTime
         var dateOnlyConverter = new ValueConverter<DateOnly, DateTime>(
             d => d.ToDateTime(TimeOnly.MinValue),      // Convert DateOnly to DateTime for storage
@@ -129,51 +137,63 @@ public class CompanyDbContext : DbContext
 
         modelBuilder.Entity<Receipt>()
             .Property(e => e.ReceiptDate)
-            .HasConversion(dateOnlyConverter);
+            .HasConversion(dateOnlyConverter)
+            .HasColumnType("date");
 
         modelBuilder.Entity<Receipt>()
             .Property(e => e.BillDate)
-            .HasConversion(dateOnlyConverter);
+            .HasConversion(dateOnlyConverter)
+            .HasColumnType("date");;
 
         modelBuilder.Entity<Issue>()
             .Property(e => e.IssueDate)
-            .HasConversion(dateOnlyConverter);
+            .HasConversion(dateOnlyConverter)
+            .HasColumnType("date");;
 
         modelBuilder.Entity<ProductionCoating>()
             .Property(e => e.ProductionCoatingDate)
-            .HasConversion(dateOnlyConverter);
+            .HasConversion(dateOnlyConverter)
+            .HasColumnType("date");;
 
         modelBuilder.Entity<ProductionCoating>()
             .Property(e => e.CoatingStart)
-            .HasConversion(timeOnlyConverter);
+            .HasConversion(timeOnlyConverter)
+            .HasColumnType("time");
 
         modelBuilder.Entity<ProductionCoating>()
             .Property(e => e.CoatingEnd)
-            .HasConversion(timeOnlyConverter);
+            .HasConversion(timeOnlyConverter)
+            .HasColumnType("time");
 
         modelBuilder.Entity<ProductionCalendaring>()
             .Property(e => e.ProductionCoatingDate)
-            .HasConversion(dateOnlyConverter);
+            .HasConversion(dateOnlyConverter)
+            .HasColumnType("date");
 
         modelBuilder.Entity<ProductionCalendaring>()
             .Property(e => e.CalendaringStart)
-            .HasConversion(timeOnlyConverter);
+            .HasConversion(timeOnlyConverter)
+            .HasColumnType("time");
 
         modelBuilder.Entity<ProductionCalendaring>()
             .Property(e => e.CalendaringEnd)
-            .HasConversion(timeOnlyConverter);
+            .HasConversion(timeOnlyConverter)
+            .HasColumnType("time");
 
         modelBuilder.Entity<ProductionSlitting>()
             .Property(e => e.ProductionCoatingDate)
-            .HasConversion(dateOnlyConverter);
+            .HasConversion(dateOnlyConverter)
+            .HasColumnType("date");
 
         modelBuilder.Entity<ProductionSlitting>()
             .Property(e => e.SlittingStart)
-            .HasConversion(timeOnlyConverter);
+            .HasConversion(timeOnlyConverter)
+            .HasColumnType("time");
 
         modelBuilder.Entity<ProductionSlitting>()
             .Property(e => e.SlittingEnd)
-            .HasConversion(timeOnlyConverter);
+            .HasConversion(timeOnlyConverter)
+            .HasColumnType("time");
 
         
         modelBuilder.Entity<User>(user =>

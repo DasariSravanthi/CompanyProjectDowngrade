@@ -10,7 +10,7 @@ public class UpdateProductionCoatingDto
 
     public string? CoatingEnd { get; set; }
 
-    public byte? AverageSpeeed { get; set; }
+    public byte? AverageSpeed { get; set; }
 
     public byte? AverageTemperature { get; set; }
 

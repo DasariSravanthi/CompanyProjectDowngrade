@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 
 using CompanyApp.Data;
 using CompanyApp.Models.Entity;
@@ -13,6 +14,7 @@ namespace CompanyApp.Controllers;
 [Authorize]
 [ApiController]
 [Route("[controller]")]
+[EnableCors("AllowAllOrigins")]
 public class ProductController : ControllerBase {
     
     private readonly CompanyDbContext _dbContext;

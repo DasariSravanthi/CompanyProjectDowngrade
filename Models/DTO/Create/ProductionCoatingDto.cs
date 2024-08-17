@@ -10,7 +10,7 @@ public class ProductionCoatingDto
 
     public string CoatingEnd { get; set; } = null!;
 
-    public byte AverageSpeeed { get; set; }
+    public byte AverageSpeed { get; set; }
 
     public byte AverageTemperature { get; set; }
 

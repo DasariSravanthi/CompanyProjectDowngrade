@@ -52,10 +52,12 @@ public class ProductStockController : ControllerBase {
             return BadRequest("Invalid ProductDetailId");
         }
 
-        var sizeExists = _dbContext.Set<Size>().Any(_ => _.SizeId == payloadProductStock.SizeId);
-        if (!sizeExists)
-        {
-            return BadRequest("Invalid SizeId");
+        if (payloadProductStock.SizeId.HasValue) {
+            var sizeExists = _dbContext.Set<Size>().Any(_ => _.SizeId == payloadProductStock.SizeId);
+            if (!sizeExists)
+            {
+                return BadRequest("Invalid SizeId");
+            }
         }
 
         var newProductStock = _mapper.Map<ProductStockDto, ProductStock>(payloadProductStock);

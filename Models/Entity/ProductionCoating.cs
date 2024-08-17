@@ -21,7 +21,7 @@ public class ProductionCoating
     public TimeOnly CoatingEnd { get; set; }
 
     [Column("Avg_Speed")]
-    public byte AverageSpeeed { get; set; }
+    public byte AverageSpeed { get; set; }
 
     [Column("Avg_Temperature")]
     public byte AverageTemperature { get; set; }

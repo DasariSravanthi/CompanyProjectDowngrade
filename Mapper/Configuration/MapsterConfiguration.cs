@@ -108,13 +108,17 @@ public static class MapsterConfiguration
         
     }
 
-    private static DateOnly? DeserializeDateOnly(string? json)
+    private static DateOnly? DeserializeDateOnly(string? dateString)
     {
-        if (string.IsNullOrEmpty(json))
+        if (string.IsNullOrEmpty(dateString))
             return null;
+            
+        if (DateOnly.TryParseExact(dateString, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out var date)) 
+        {
+            return date;
+        }
 
-        // Use Newtonsoft.Json to deserialize the date string
-        return JsonConvert.DeserializeObject<DateOnly?>(json, new NullableDateOnlyJsonConverter());
+        throw new JsonException($"Unable to convert \"{dateString}\" to DateOnly.");
     }
 
     private static string? SerializeDateOnly(DateOnly? date)
@@ -126,13 +130,17 @@ public static class MapsterConfiguration
         return JsonConvert.SerializeObject(date, new NullableDateOnlyJsonConverter());
     }
 
-    private static TimeOnly? DeserializeTimeOnly(string? json)
+    private static TimeOnly? DeserializeTimeOnly(string? timeString)
     {
-        if (string.IsNullOrEmpty(json))
+        if (string.IsNullOrEmpty(timeString))
             return null;
 
-        // Use Newtonsoft.Json to deserialize the time string
-        return JsonConvert.DeserializeObject<TimeOnly?>(json, new NullableTimeOnlyJsonConverter());
+            if (TimeOnly.TryParseExact(timeString, "HH:mm", null, System.Globalization.DateTimeStyles.None, out var time))
+        {
+            return time;
+        }
+
+        throw new JsonException($"Unable to convert \"{timeString}\" to TimeOnly.");
     }
 
     private static string? SerializeTimeOnly(TimeOnly? time)

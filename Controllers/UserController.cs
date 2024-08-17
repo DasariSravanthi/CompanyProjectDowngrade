@@ -37,7 +37,7 @@ public class UserController : ControllerBase
 
         var hasRequiredChars = new Regex(@"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}");
         if (!hasRequiredChars.IsMatch(registerUser.Password)) {
-            return BadRequest("Passwords must be at least 8 characters and should contain the following: upper case (A-Z), lower case (a-z), number (0-9) and special character (e.g. !@#$%^&*)");
+            return BadRequest("Password must be at least 8 characters and should contain the following: upper case (A-Z), lower case (a-z), number (0-9) and special character (e.g. !@#$%^&*)");
         }
 
         var hashedPassword = BCrypt.Net.BCrypt.HashPassword(registerUser.Password);
@@ -97,7 +97,7 @@ public class UserController : ControllerBase
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Role, user.Role),
         };
-        
+
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSecretKey"] ?? String.Empty));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 

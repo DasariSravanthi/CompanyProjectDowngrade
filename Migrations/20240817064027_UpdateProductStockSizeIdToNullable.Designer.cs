@@ -4,6 +4,7 @@ using CompanyApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompanyApp.Migrations
 {
     [DbContext(typeof(CompanyDbContext))]
-    partial class CompanyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240817064027_UpdateProductStockSizeIdToNullable")]
+    partial class UpdateProductStockSizeIdToNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,7 +35,7 @@ namespace CompanyApp.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IssueId"));
 
                     b.Property<DateTime>("IssueDate")
-                        .HasColumnType("date")
+                        .HasColumnType("datetime2")
                         .HasColumnName("I_Date");
 
                     b.Property<float?>("Moisture")
@@ -47,6 +50,7 @@ namespace CompanyApp.Migrations
                         .HasColumnName("Roll_No");
 
                     b.Property<int?>("RollNumberId")
+                        .IsRequired()
                         .HasColumnType("int")
                         .HasColumnName("RN_Id");
 
@@ -168,7 +172,7 @@ namespace CompanyApp.Migrations
                         .HasColumnName("Calendaring_Start");
 
                     b.Property<DateTime>("ProductionCoatingDate")
-                        .HasColumnType("date")
+                        .HasColumnType("datetime2")
                         .HasColumnName("P_Date");
 
                     b.Property<int>("ProductionCoatingId")
@@ -225,7 +229,7 @@ namespace CompanyApp.Migrations
                         .HasColumnName("Issue_Id");
 
                     b.Property<DateTime>("ProductionCoatingDate")
-                        .HasColumnType("date")
+                        .HasColumnType("datetime2")
                         .HasColumnName("P_Date");
 
                     b.Property<byte>("RollCount")
@@ -261,7 +265,7 @@ namespace CompanyApp.Migrations
                         .HasColumnName("PC_Id");
 
                     b.Property<DateTime>("ProductionCoatingDate")
-                        .HasColumnType("date")
+                        .HasColumnType("datetime2")
                         .HasColumnName("P_Date");
 
                     b.Property<byte>("RollCount")
@@ -298,7 +302,7 @@ namespace CompanyApp.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReceiptId"));
 
                     b.Property<DateTime>("BillDate")
-                        .HasColumnType("date")
+                        .HasColumnType("datetime2")
                         .HasColumnName("Bill_Date");
 
                     b.Property<string>("BillNo")
@@ -311,7 +315,7 @@ namespace CompanyApp.Migrations
                         .HasColumnName("Bill_Value");
 
                     b.Property<DateTime>("ReceiptDate")
-                        .HasColumnType("date")
+                        .HasColumnType("datetime2")
                         .HasColumnName("R_Date");
 
                     b.Property<byte>("SupplierId")
@@ -504,7 +508,8 @@ namespace CompanyApp.Migrations
                     b.HasOne("CompanyApp.Models.Entity.RollNumber", "RollNumbers")
                         .WithMany("Issues")
                         .HasForeignKey("RollNumberId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("ProductStocks");
 
