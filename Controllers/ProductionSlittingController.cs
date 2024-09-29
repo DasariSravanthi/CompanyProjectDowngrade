@@ -1,14 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 using CompanyApp.Data;
 using CompanyApp.Models.Entity;
 using CompanyApp.Models.DTO.Create;
 using CompanyApp.Models.DTO.Update;
 using CompanyApp.Mapper.MapperService;
+using CompanyApp.Identity;
 
 namespace CompanyApp.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 public class ProductionSlittingController : ControllerBase {
@@ -23,80 +26,111 @@ public class ProductionSlittingController : ControllerBase {
     }
 
     [HttpGet("allProductionSlittings")]
-    public ActionResult<IEnumerable<ProductionSlitting>> GetProductionSlittings() {
+    public async Task<IActionResult> GetProductionSlittings() {
+        try {
 
-        var productionSlittings = _dbContext.ProductionSlittings.Include(_ => _.ProductionCalendarings).ToList();
+            var productionSlittings = await _dbContext.ProductionSlittings.Include(_ => _.ProductionCalendarings).ToListAsync();
 
-        return Ok(productionSlittings);
+            return Ok(productionSlittings);
+        }
+        catch (Exception ex) {
+
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpGet("getProductionSlitting/{id}")]
-    public ActionResult GetProductionSlittingById(int id) {
+    public async Task<IActionResult> GetProductionSlittingById(int id) {
+        try {
 
-        var productionSlitting = _dbContext.ProductionSlittings.Include(_ => _.ProductionCalendarings).FirstOrDefault(_ => _.ProductionSlittingId == id);
+            var productionSlitting = await _dbContext.ProductionSlittings.Include(_ => _.ProductionCalendarings).FirstOrDefaultAsync(_ => _.ProductionSlittingId == id);
 
-        if (productionSlitting == null)
-        {
-            return NotFound();
+            if (productionSlitting == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            return Ok(productionSlitting);
         }
+        catch (Exception ex) {
 
-        return Ok(productionSlitting);
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPost("addProductionSlitting")]
-    public ActionResult AddProductionSlitting(ProductionSlittingDto payloadProductionSlitting) {
+    public async Task<IActionResult> AddProductionSlitting(ProductionSlittingDto payloadProductionSlitting) {
+        try {
 
-        var productionCalendaringExists = _dbContext.Set<ProductionCalendaring>().Any(_ => _.ProductionCalendaringId == payloadProductionSlitting.ProductionCalendaringId);
-        if (!productionCalendaringExists)
-        {
-            return BadRequest("Invalid ProductionCalendaringId");
-        }
-
-        var newProductionSlitting = _mapper.Map<ProductionSlittingDto, ProductionSlitting>(payloadProductionSlitting);
-
-        _dbContext.ProductionSlittings.Add(newProductionSlitting);
-        _dbContext.SaveChanges();
-
-        return CreatedAtAction(nameof(GetProductionSlittingById), new { id = newProductionSlitting.ProductionSlittingId }, newProductionSlitting);
-    }
-
-    [HttpPut("updateProductionSlitting/{id}")]
-    public ActionResult UpdateProductionSlitting(int id, UpdateProductionSlittingDto payloadProductionSlitting) {
-
-        var existingProductionSlitting = _dbContext.ProductionSlittings.Find(id);
-        if (existingProductionSlitting == null)
-        {
-            return NotFound();
-        }
-
-        if (payloadProductionSlitting.ProductionCalendaringId.HasValue) {
-            var productionCalendaringExists = _dbContext.Set<ProductionCalendaring>().Any(_ => _.ProductionCalendaringId == payloadProductionSlitting.ProductionCalendaringId);
+            var productionCalendaringExists = await _dbContext.Set<ProductionCalendaring>().AnyAsync(_ => _.ProductionCalendaringId == payloadProductionSlitting.ProductionCalendaringId);
             if (!productionCalendaringExists)
             {
                 return BadRequest("Invalid ProductionCalendaringId");
             }
+
+            var newProductionSlitting = _mapper.Map<ProductionSlittingDto, ProductionSlitting>(payloadProductionSlitting);
+
+            await _dbContext.ProductionSlittings.AddAsync(newProductionSlitting);
+            await _dbContext.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetProductionSlittingById), new { id = newProductionSlitting.ProductionSlittingId }, newProductionSlitting);
         }
+        catch (Exception ex) {
 
-        _mapper.Map(payloadProductionSlitting, existingProductionSlitting);
-
-        _dbContext.ProductionSlittings.Update(existingProductionSlitting);
-        _dbContext.SaveChanges();
-
-        return Ok(existingProductionSlitting);
+            return BadRequest(ex.Message);
+        }
     }
 
-    [HttpDelete("deleteProductionSlitting/{id}")]
-    public ActionResult DeleteProductionSlitting(int id)
-    {
-        var productionSlitting = _dbContext.ProductionSlittings.Find(id);
-        if (productionSlitting == null)
-        {
-            return NotFound();
+    [HttpPut("updateProductionSlitting/{id}")]
+    public async Task<IActionResult> UpdateProductionSlitting(int id, UpdateProductionSlittingDto payloadProductionSlitting) {
+        try {
+
+            var existingProductionSlitting = await _dbContext.ProductionSlittings.FindAsync(id);
+            if (existingProductionSlitting == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            if (payloadProductionSlitting.ProductionCalendaringId.HasValue) {
+                var productionCalendaringExists = await _dbContext.Set<ProductionCalendaring>().AnyAsync(_ => _.ProductionCalendaringId == payloadProductionSlitting.ProductionCalendaringId);
+                if (!productionCalendaringExists)
+                {
+                    return BadRequest("Invalid ProductionCalendaringId");
+                }
+            }
+
+            _mapper.Map(payloadProductionSlitting, existingProductionSlitting);
+
+            _dbContext.ProductionSlittings.Update(existingProductionSlitting);
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(existingProductionSlitting);
         }
+        catch (Exception ex) {
 
-        _dbContext.ProductionSlittings.Remove(productionSlitting);
-        _dbContext.SaveChanges();
+            return BadRequest(ex.Message);
+        }
+    }
 
-        return NoContent();
+    [Authorize(Policy = IdentityConstants.PolicyName1)]
+    [HttpDelete("deleteProductionSlitting/{id}")]
+    public async Task<IActionResult> DeleteProductionSlitting(int id) {
+        try {
+
+            var productionSlitting = await _dbContext.ProductionSlittings.FindAsync(id);
+            if (productionSlitting == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            _dbContext.ProductionSlittings.Remove(productionSlitting);
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
+        }
+        catch (Exception ex) {
+
+            return BadRequest(ex.Message);
+        }
     }
 }

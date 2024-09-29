@@ -1,14 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 using CompanyApp.Data;
 using CompanyApp.Models.Entity;
 using CompanyApp.Models.DTO.Create;
 using CompanyApp.Models.DTO.Update;
 using CompanyApp.Mapper.MapperService;
+using CompanyApp.Identity;
 
 namespace CompanyApp.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 public class ReceiptDetailController : ControllerBase {
@@ -23,94 +26,125 @@ public class ReceiptDetailController : ControllerBase {
     }
 
     [HttpGet("allReceiptDetails")]
-    public ActionResult<IEnumerable<ReceiptDetail>> GetReceiptDetails() {
+    public async Task<IActionResult> GetReceiptDetails() {
+        try {
 
-        var receiptDetails = _dbContext.ReceiptDetails.Include(_ => _.Receipts).Include(_ => _.ProductStocks).ToList();
+            var receiptDetails = await _dbContext.ReceiptDetails.Include(_ => _.Receipts).Include(_ => _.ProductStocks).ToListAsync();
 
-        return Ok(receiptDetails);
+            return Ok(receiptDetails);
+        }
+        catch (Exception ex) {
+
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpGet("getReceiptDetail/{id}")]
-    public ActionResult GetReceiptDetailById(int id) {
+    public async Task<IActionResult> GetReceiptDetailById(int id) {
+        try {
 
-        var receiptDetail = _dbContext.ReceiptDetails.Include(_ => _.Receipts).Include(_ => _.ProductStocks).FirstOrDefault(_ => _.ReceiptDetailId == id);
+            var receiptDetail = await _dbContext.ReceiptDetails.Include(_ => _.Receipts).Include(_ => _.ProductStocks).FirstOrDefaultAsync(_ => _.ReceiptDetailId == id);
 
-        if (receiptDetail == null)
-        {
-            return NotFound();
+            if (receiptDetail == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            return Ok(receiptDetail);
         }
+        catch (Exception ex) {
 
-        return Ok(receiptDetail);
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPost("addReceiptDetail")]
-    public ActionResult AddReceiptDetail(ReceiptDetailDto payloadReceiptDetail) {
+    public async Task<IActionResult> AddReceiptDetail(ReceiptDetailDto payloadReceiptDetail) {
+        try {
 
-        var receiptExists = _dbContext.Set<Receipt>().Any(_ => _.ReceiptId == payloadReceiptDetail.ReceiptId);
-        if (!receiptExists)
-        {
-            return BadRequest("Invalid ReceiptId");
-        }
-
-        var productStockExists = _dbContext.Set<ProductStock>().Any(_ => _.ProductStockId == payloadReceiptDetail.ProductStockId);
-        if (!productStockExists)
-        {
-            return BadRequest("Invalid ProductStockId");
-        }
-        
-        var newReceiptDetail = _mapper.Map<ReceiptDetailDto, ReceiptDetail>(payloadReceiptDetail);
-
-        _dbContext.ReceiptDetails.Add(newReceiptDetail);
-        _dbContext.SaveChanges();
-
-        return CreatedAtAction(nameof(GetReceiptDetailById), new { id = newReceiptDetail.ReceiptDetailId }, newReceiptDetail);
-    }
-
-    [HttpPut("updateReceiptDetail/{id}")]
-    public ActionResult UpdateReceiptDetail(int id, UpdateReceiptDetailDto payloadReceiptDetail) {
-
-        var existingReceiptDetail = _dbContext.ReceiptDetails.Find(id);
-        if (existingReceiptDetail == null)
-        {
-            return NotFound();
-        }
-
-        if (payloadReceiptDetail.ReceiptId.HasValue) {
-            var receiptExists = _dbContext.Set<Receipt>().Any(_ => _.ReceiptId == payloadReceiptDetail.ReceiptId);
+            var receiptExists = await _dbContext.Set<Receipt>().AnyAsync(_ => _.ReceiptId == payloadReceiptDetail.ReceiptId);
             if (!receiptExists)
             {
                 return BadRequest("Invalid ReceiptId");
             }
-        }
 
-        if (payloadReceiptDetail.ProductStockId.HasValue) {
-            var productStockExists = _dbContext.Set<ProductStock>().Any(_ => _.ProductStockId == payloadReceiptDetail.ProductStockId);
+            var productStockExists = await _dbContext.Set<ProductStock>().AnyAsync(_ => _.ProductStockId == payloadReceiptDetail.ProductStockId);
             if (!productStockExists)
             {
                 return BadRequest("Invalid ProductStockId");
             }
+            
+            var newReceiptDetail = _mapper.Map<ReceiptDetailDto, ReceiptDetail>(payloadReceiptDetail);
+
+            await _dbContext.ReceiptDetails.AddAsync(newReceiptDetail);
+            await _dbContext.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetReceiptDetailById), new { id = newReceiptDetail.ReceiptDetailId }, newReceiptDetail);
         }
+        catch (Exception ex) {
 
-        _mapper.Map(payloadReceiptDetail, existingReceiptDetail);
-
-        _dbContext.ReceiptDetails.Update(existingReceiptDetail);
-        _dbContext.SaveChanges();
-
-        return Ok(existingReceiptDetail);
+            return BadRequest(ex.Message);
+        }
     }
 
-    [HttpDelete("deleteReceiptDetail/{id}")]
-    public ActionResult DeleteReceiptDetail(int id)
-    {
-        var receiptDetail = _dbContext.ReceiptDetails.Find(id);
-        if (receiptDetail == null)
-        {
-            return NotFound();
+    [HttpPut("updateReceiptDetail/{id}")]
+    public async Task<IActionResult> UpdateReceiptDetail(int id, UpdateReceiptDetailDto payloadReceiptDetail) {
+        try {
+
+            var existingReceiptDetail = await _dbContext.ReceiptDetails.FindAsync(id);
+            if (existingReceiptDetail == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            if (payloadReceiptDetail.ReceiptId.HasValue) {
+                var receiptExists = await _dbContext.Set<Receipt>().AnyAsync(_ => _.ReceiptId == payloadReceiptDetail.ReceiptId);
+                if (!receiptExists)
+                {
+                    return BadRequest("Invalid ReceiptId");
+                }
+            }
+
+            if (payloadReceiptDetail.ProductStockId.HasValue) {
+                var productStockExists = await _dbContext.Set<ProductStock>().AnyAsync(_ => _.ProductStockId == payloadReceiptDetail.ProductStockId);
+                if (!productStockExists)
+                {
+                    return BadRequest("Invalid ProductStockId");
+                }
+            }
+
+            _mapper.Map(payloadReceiptDetail, existingReceiptDetail);
+
+            _dbContext.ReceiptDetails.Update(existingReceiptDetail);
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(existingReceiptDetail);
         }
+        catch (Exception ex) {
 
-        _dbContext.ReceiptDetails.Remove(receiptDetail);
-        _dbContext.SaveChanges();
+            return BadRequest(ex.Message);
+        }
+    }
 
-        return NoContent();
+    [Authorize(Policy = IdentityConstants.PolicyName1)]
+    [HttpDelete("deleteReceiptDetail/{id}")]
+    public async Task<IActionResult> DeleteReceiptDetail(int id) {
+        try {
+
+            var receiptDetail = await _dbContext.ReceiptDetails.FindAsync(id);
+            if (receiptDetail == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            _dbContext.ReceiptDetails.Remove(receiptDetail);
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
+        }
+        catch (Exception ex) {
+
+            return BadRequest(ex.Message);
+        }
     }
 }

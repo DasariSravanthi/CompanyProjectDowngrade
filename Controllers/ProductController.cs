@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Cors;
 
 using CompanyApp.Data;
 using CompanyApp.Models.Entity;
@@ -14,7 +14,6 @@ namespace CompanyApp.Controllers;
 [Authorize]
 [ApiController]
 [Route("[controller]")]
-[EnableCors("AllowAllOrigins")]
 public class ProductController : ControllerBase {
     
     private readonly CompanyDbContext _dbContext;
@@ -27,67 +26,97 @@ public class ProductController : ControllerBase {
     }
 
     [HttpGet("allProducts")]
-    public ActionResult<IEnumerable<Product>> GetProducts() {
+    public async Task<IActionResult> GetProducts() {
+        try {
 
-        var products = _dbContext.Products.ToList();
+            var products = await _dbContext.Products.ToListAsync();
 
-        return Ok(products);
+            return Ok(products);
+        }
+        catch (Exception ex) {
+
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpGet("getProduct/{id}")]
-    public ActionResult GetProductById(byte id) {
+    public async Task<IActionResult> GetProductById(byte id) {
+        try {
 
-        var product = _dbContext.Products.Find(id);
+            var product = await _dbContext.Products.FindAsync(id);
 
-        if (product == null)
-        {
-            return NotFound();
+            if (product == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            return Ok(product);
         }
+        catch (Exception ex) {
 
-        return Ok(product);
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPost("addProduct")]
-    public ActionResult AddProduct(ProductDto payloadProduct) {
+    public async Task<IActionResult> AddProduct(ProductDto payloadProduct) {
+        try {
 
-        var newProduct = _mapper.Map<ProductDto, Product>(payloadProduct);
+            var newProduct = _mapper.Map<ProductDto, Product>(payloadProduct);
 
-        _dbContext.Products.Add(newProduct);
-        _dbContext.SaveChanges();
+            await _dbContext.Products.AddAsync(newProduct);
+            await _dbContext.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetProductById), new { id = newProduct.ProductId }, newProduct);
+            return CreatedAtAction(nameof(GetProductById), new { id = newProduct.ProductId }, newProduct);
+        }
+        catch (Exception ex) {
+
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPut("updateProduct/{id}")]
-    public ActionResult UpdateProduct(byte id, UpdateProductDto payloadProduct) {
+    public async Task<IActionResult> UpdateProduct(byte id, UpdateProductDto payloadProduct) {
+        try {
 
-        var existingProduct = _dbContext.Products.Find(id);
-        if (existingProduct == null)
-        {
-            return NotFound();
+            var existingProduct = await _dbContext.Products.FindAsync(id);
+            if (existingProduct == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            _mapper.Map(payloadProduct, existingProduct);
+
+            _dbContext.Products.Update(existingProduct);
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(existingProduct);
         }
+        catch (Exception ex) {
 
-        _mapper.Map(payloadProduct, existingProduct);
-
-        _dbContext.Products.Update(existingProduct);
-        _dbContext.SaveChanges();
-
-        return Ok(existingProduct);
+            return BadRequest(ex.Message);
+        }
     }
 
     [Authorize(Policy = IdentityConstants.PolicyName1)]
     [HttpDelete("deleteProduct/{id}")]
-    public ActionResult DeleteProduct(byte id)
-    {
-        var product = _dbContext.Products.Find(id);
-        if (product == null)
-        {
-            return NotFound();
+    public async Task<IActionResult> DeleteProduct(byte id) {
+        try {
+
+            var product = await _dbContext.Products.FindAsync(id);
+            if (product == null)
+            {
+                return NotFound("Data Not Found");
+            }
+            
+            _dbContext.Products.Remove(product);
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
         }
+        catch (Exception ex) {
 
-        _dbContext.Products.Remove(product);
-        _dbContext.SaveChanges();
-
-        return NoContent();
+            return BadRequest(ex.Message);
+        }
     }
 }

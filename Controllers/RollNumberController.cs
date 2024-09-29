@@ -1,14 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 using CompanyApp.Data;
 using CompanyApp.Models.Entity;
 using CompanyApp.Models.DTO.Create;
 using CompanyApp.Models.DTO.Update;
 using CompanyApp.Mapper.MapperService;
+using CompanyApp.Identity;
 
 namespace CompanyApp.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 public class RollNumberController : ControllerBase {
@@ -23,80 +26,111 @@ public class RollNumberController : ControllerBase {
     }
 
     [HttpGet("allRollNumbers")]
-    public ActionResult<IEnumerable<RollNumber>> GetRollNumbers() {
+    public async Task<IActionResult> GetRollNumbers() {
+        try {
 
-        var rollNumbers = _dbContext.RollNumbers.Include(_ => _.ReceiptDetails).ToList();
+            var rollNumbers = await _dbContext.RollNumbers.Include(_ => _.ReceiptDetails).ToListAsync();
 
-        return Ok(rollNumbers);
+            return Ok(rollNumbers);
+        }
+        catch (Exception ex) {
+
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpGet("getRollNumber/{id}")]
-    public ActionResult GetRollNumberById(int id) {
+    public async Task<IActionResult> GetRollNumberById(int id) {
+        try {
 
-        var rollNumber = _dbContext.RollNumbers.Include(_ => _.ReceiptDetails).FirstOrDefault(_ => _.RollNumberId == id);
+            var rollNumber = await _dbContext.RollNumbers.Include(_ => _.ReceiptDetails).FirstOrDefaultAsync(_ => _.RollNumberId == id);
 
-        if (rollNumber == null)
-        {
-            return NotFound();
+            if (rollNumber == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            return Ok(rollNumber);
         }
+        catch (Exception ex) {
 
-        return Ok(rollNumber);
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPost("addRollNumber")]
-    public ActionResult AddRollNumber(RollNumberDto payloadRollNumber) {
+    public async Task<IActionResult> AddRollNumber(RollNumberDto payloadRollNumber) {
+        try {
 
-        var receiptDetailExists = _dbContext.Set<ReceiptDetail>().Any(_ => _.ReceiptDetailId == payloadRollNumber.ReceiptDetailId);
-        if (!receiptDetailExists)
-        {
-            return BadRequest("Invalid ReceiptDetailId");
-        }
-
-        var newRollNumber = _mapper.Map<RollNumberDto, RollNumber>(payloadRollNumber);
-
-        _dbContext.RollNumbers.Add(newRollNumber);
-        _dbContext.SaveChanges();
-
-        return CreatedAtAction(nameof(GetRollNumberById), new { id = newRollNumber.RollNumberId }, newRollNumber);
-    }
-
-    [HttpPut("updateRollNumber/{id}")]
-    public ActionResult UpdateRollNumber(int id, UpdateRollNumberDto payloadRollNumber) {
-
-        var existingRollNumber = _dbContext.RollNumbers.Find(id);
-        if (existingRollNumber == null)
-        {
-            return NotFound();
-        }
-
-        if (payloadRollNumber.ReceiptDetailId.HasValue) {
-            var receiptDetailExists = _dbContext.Set<ReceiptDetail>().Any(_ => _.ReceiptDetailId == payloadRollNumber.ReceiptDetailId);
+            var receiptDetailExists = await _dbContext.Set<ReceiptDetail>().AnyAsync(_ => _.ReceiptDetailId == payloadRollNumber.ReceiptDetailId);
             if (!receiptDetailExists)
             {
                 return BadRequest("Invalid ReceiptDetailId");
             }
+
+            var newRollNumber = _mapper.Map<RollNumberDto, RollNumber>(payloadRollNumber);
+
+            await _dbContext.RollNumbers.AddAsync(newRollNumber);
+            await _dbContext.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetRollNumberById), new { id = newRollNumber.RollNumberId }, newRollNumber);
         }
+        catch (Exception ex) {
 
-        _mapper.Map(payloadRollNumber, existingRollNumber);
-
-        _dbContext.RollNumbers.Update(existingRollNumber);
-        _dbContext.SaveChanges();
-
-        return Ok(existingRollNumber);
+            return BadRequest(ex.Message);
+        }
     }
 
-    [HttpDelete("deleteRollNumber/{id}")]
-    public ActionResult DeleteRollNumber(int id)
-    {
-        var rollNumber = _dbContext.RollNumbers.Find(id);
-        if (rollNumber == null)
-        {
-            return NotFound();
+    [HttpPut("updateRollNumber/{id}")]
+    public async Task<IActionResult> UpdateRollNumber(int id, UpdateRollNumberDto payloadRollNumber) {
+        try {
+
+            var existingRollNumber = await _dbContext.RollNumbers.FindAsync(id);
+            if (existingRollNumber == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            if (payloadRollNumber.ReceiptDetailId.HasValue) {
+                var receiptDetailExists = await _dbContext.Set<ReceiptDetail>().AnyAsync(_ => _.ReceiptDetailId == payloadRollNumber.ReceiptDetailId);
+                if (!receiptDetailExists)
+                {
+                    return BadRequest("Invalid ReceiptDetailId");
+                }
+            }
+
+            _mapper.Map(payloadRollNumber, existingRollNumber);
+
+            _dbContext.RollNumbers.Update(existingRollNumber);
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(existingRollNumber);
         }
+        catch (Exception ex) {
 
-        _dbContext.RollNumbers.Remove(rollNumber);
-        _dbContext.SaveChanges();
+            return BadRequest(ex.Message);
+        }
+    }
 
-        return NoContent();
+    [Authorize(Policy = IdentityConstants.PolicyName1)]
+    [HttpDelete("deleteRollNumber/{id}")]
+    public async Task<IActionResult> DeleteRollNumber(int id) {
+        try {
+
+            var rollNumber = await _dbContext.RollNumbers.FindAsync(id);
+            if (rollNumber == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            _dbContext.RollNumbers.Remove(rollNumber);
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
+        }
+        catch (Exception ex) {
+
+            return BadRequest(ex.Message);
+        }
     }
 }

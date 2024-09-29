@@ -1,13 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 using CompanyApp.Data;
 using CompanyApp.Models.Entity;
 using CompanyApp.Models.DTO.Create;
 using CompanyApp.Models.DTO.Update;
 using CompanyApp.Mapper.MapperService;
+using CompanyApp.Identity;
 
 namespace CompanyApp.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 public class SupplierController : ControllerBase {
@@ -23,66 +27,97 @@ public class SupplierController : ControllerBase {
     }
 
     [HttpGet("allSuppliers")]
-    public ActionResult<IEnumerable<Supplier>> GetSuppliers() {
+    public async Task<ActionResult> GetSuppliers() {
+        try {
 
-        var suppliers = _dbContext.Suppliers.ToList();
+            var suppliers = await _dbContext.Suppliers.ToListAsync();
 
-        return Ok(suppliers);
+            return Ok(suppliers);
+        }
+        catch (Exception ex) {
+
+            return BadRequest(ex.Message);
+        }
     }   
 
     [HttpGet("getSupplier/{id}")]
-    public ActionResult GetSupplierById(byte id) {
+    public async Task<IActionResult> GetSupplierById(byte id) {
+        try {
 
-        var supplier = _dbContext.Suppliers.Find(id);
+            var supplier = await _dbContext.Suppliers.FindAsync(id);
 
-        if (supplier == null)
-        {
-            return NotFound();
+            if (supplier == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            return Ok(supplier);
         }
+        catch (Exception ex) {
 
-        return Ok(supplier);
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPost("addSupplier")]
-    public ActionResult AddSupplier(SupplierDto payloadSupplier) {
+    public async Task<IActionResult> AddSupplier(SupplierDto payloadSupplier) {
+        try {
 
-        var newSupplier = _mapper.Map<SupplierDto, Supplier>(payloadSupplier);
+            var newSupplier = _mapper.Map<SupplierDto, Supplier>(payloadSupplier);
 
-        _dbContext.Suppliers.Add(newSupplier);
-        _dbContext.SaveChanges();
+            await _dbContext.Suppliers.AddAsync(newSupplier);
+            await _dbContext.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetSupplierById), new { id = newSupplier.SupplierId }, newSupplier);
+            return CreatedAtAction(nameof(GetSupplierById), new { id = newSupplier.SupplierId }, newSupplier);
+        }
+        catch (Exception ex) {
+
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPut("updateSupplier/{id}")]
-    public ActionResult UpdateSupplier(byte id, UpdateSupplierDto payloadSupplier) {
+    public async Task<IActionResult> UpdateSupplier(byte id, UpdateSupplierDto payloadSupplier) {
+        try {
 
-        var existingSupplier = _dbContext.Suppliers.Find(id);
-        if (existingSupplier == null)
-        {
-            return NotFound();
+            var existingSupplier = await _dbContext.Suppliers.FindAsync(id);
+            if (existingSupplier == null)
+            {
+                return NotFound("Data Not Found");
+            }
+            
+            _mapper.Map(payloadSupplier, existingSupplier);
+
+            _dbContext.Suppliers.Update(existingSupplier);
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(existingSupplier);
         }
-        
-        _mapper.Map(payloadSupplier, existingSupplier);
+        catch (Exception ex) {
 
-        _dbContext.Suppliers.Update(existingSupplier);
-        _dbContext.SaveChanges();
-
-        return Ok(existingSupplier);
+            return BadRequest(ex.Message);
+        }
     }
 
+    [Authorize(Policy = IdentityConstants.PolicyName1)]
     [HttpDelete("deleteSupplier/{id}")]
-    public ActionResult DeleteSupplier(byte id)
-    {
-        var supplier = _dbContext.Suppliers.Find(id);
-        if (supplier == null)
-        {
-            return NotFound();
+    public async Task<IActionResult> DeleteSupplier(byte id) {
+        try {
+
+            var supplier = await _dbContext.Suppliers.FindAsync(id);
+            if (supplier == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            _dbContext.Suppliers.Remove(supplier);
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
         }
+        catch (Exception ex) {
 
-        _dbContext.Suppliers.Remove(supplier);
-        _dbContext.SaveChanges();
-
-        return NoContent();
+            return BadRequest(ex.Message);
+        }
     }
 }

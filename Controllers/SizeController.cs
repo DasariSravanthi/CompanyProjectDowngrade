@@ -1,13 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 using CompanyApp.Data;
 using CompanyApp.Models.Entity;
 using CompanyApp.Models.DTO.Create;
 using CompanyApp.Models.DTO.Update;
 using CompanyApp.Mapper.MapperService;
+using CompanyApp.Identity;
 
 namespace CompanyApp.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 public class SizeController : ControllerBase {
@@ -22,66 +26,97 @@ public class SizeController : ControllerBase {
     }
 
     [HttpGet("allSizes")]
-    public ActionResult<IEnumerable<Size>> GetSizes() {
+    public async Task<IActionResult> GetSizes() {
+        try {
 
-        var sizes = _dbContext.Sizes.ToList();
+            var sizes = await _dbContext.Sizes.ToListAsync();
 
-        return Ok(sizes);
+            return Ok(sizes);
+        }
+        catch (Exception ex) {
+
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpGet("getSize/{id}")]
-    public ActionResult GetSizeById(byte id) {
+    public async Task<IActionResult> GetSizeById(byte id) {
+        try {
 
-        var size = _dbContext.Sizes.Find(id);
+            var size = await _dbContext.Sizes.FindAsync(id);
 
-        if (size == null)
-        {
-            return NotFound();
+            if (size == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            return Ok(size);
         }
+        catch (Exception ex) {
 
-        return Ok(size);
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPost("addSize")]
-    public ActionResult AddSize(SizeDto payloadSize) {
+    public async Task<IActionResult> AddSize(SizeDto payloadSize) {
+        try {
 
-        var newSize = _mapper.Map<SizeDto, Size>(payloadSize);
+            var newSize = _mapper.Map<SizeDto, Size>(payloadSize);
 
-        _dbContext.Sizes.Add(newSize);
-        _dbContext.SaveChanges();
+            await _dbContext.Sizes.AddAsync(newSize);
+            await _dbContext.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetSizeById), new { id = newSize.SizeId }, newSize);
+            return CreatedAtAction(nameof(GetSizeById), new { id = newSize.SizeId }, newSize);
+        }
+        catch (Exception ex) {
+
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPut("updateSize/{id}")]
-    public ActionResult UpdateSize(byte id, UpdateSizeDto payloadSize) {
+    public async Task<IActionResult> UpdateSize(byte id, UpdateSizeDto payloadSize) {
+        try {
 
-        var existingSize = _dbContext.Sizes.Find(id);
-        if (existingSize == null)
-        {
-            return NotFound();
+            var existingSize = await _dbContext.Sizes.FindAsync(id);
+            if (existingSize == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            _mapper.Map(payloadSize, existingSize);
+
+            _dbContext.Sizes.Update(existingSize);
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(existingSize);
         }
+        catch (Exception ex) {
 
-        _mapper.Map(payloadSize, existingSize);
-
-        _dbContext.Sizes.Update(existingSize);
-        _dbContext.SaveChanges();
-
-        return Ok(existingSize);
+            return BadRequest(ex.Message);
+        }
     }
 
+    [Authorize(Policy = IdentityConstants.PolicyName1)]
     [HttpDelete("deleteSize/{id}")]
-    public ActionResult DeleteSize(byte id)
-    {
-        var size = _dbContext.Sizes.Find(id);
-        if (size == null)
-        {
-            return NotFound();
+    public async Task<IActionResult> DeleteSize(byte id) {
+        try {
+
+            var size = await _dbContext.Sizes.FindAsync(id);
+            if (size == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            _dbContext.Sizes.Remove(size);
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
         }
+        catch (Exception ex) {
 
-        _dbContext.Sizes.Remove(size);
-        _dbContext.SaveChanges();
-
-        return NoContent();
+            return BadRequest(ex.Message);
+        }
     }
 }

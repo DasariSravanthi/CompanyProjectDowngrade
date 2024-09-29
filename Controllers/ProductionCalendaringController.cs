@@ -1,14 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 using CompanyApp.Data;
 using CompanyApp.Models.Entity;
 using CompanyApp.Models.DTO.Create;
 using CompanyApp.Models.DTO.Update;
 using CompanyApp.Mapper.MapperService;
+using CompanyApp.Identity;
 
 namespace CompanyApp.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 public class ProductionCalendaringController : ControllerBase {
@@ -23,80 +26,111 @@ public class ProductionCalendaringController : ControllerBase {
     }
 
     [HttpGet("allProductionCalendarings")]
-    public ActionResult<IEnumerable<ProductionCalendaring>> GetProductionCalendarings() {
+    public async Task<IActionResult> GetProductionCalendarings() {
+        try {
 
-        var productionCalendarings = _dbContext.ProductionCalendarings.Include(_ => _.ProductionCoatings).ToList();
+            var productionCalendarings = await _dbContext.ProductionCalendarings.Include(_ => _.ProductionCoatings).ToListAsync();
 
-        return Ok(productionCalendarings);
+            return Ok(productionCalendarings);
+        }
+        catch (Exception ex) {
+
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpGet("getProductionCalendaring/{id}")]
-    public ActionResult GetProductionCalendaringById(int id) {
+    public async Task<IActionResult> GetProductionCalendaringById(int id) {
+        try {
 
-        var productionCalendaring = _dbContext.ProductionCalendarings.Include(_ => _.ProductionCoatings).FirstOrDefault(_ => _.ProductionCalendaringId == id);
+            var productionCalendaring = await _dbContext.ProductionCalendarings.Include(_ => _.ProductionCoatings).FirstOrDefaultAsync(_ => _.ProductionCalendaringId == id);
 
-        if (productionCalendaring == null)
-        {
-            return NotFound();
+            if (productionCalendaring == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            return Ok(productionCalendaring);
         }
+        catch (Exception ex) {
 
-        return Ok(productionCalendaring);
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPost("addProductionCalendaring")]
-    public ActionResult AddProductionCalendaring(ProductionCalendaringDto payloadProductionCalendaring) {
+    public async Task<IActionResult> AddProductionCalendaring(ProductionCalendaringDto payloadProductionCalendaring) {
+        try {
 
-        var productionCoatingExists = _dbContext.Set<ProductionCoating>().Any(_ => _.ProductionCoatingId == payloadProductionCalendaring.ProductionCoatingId);
-        if (!productionCoatingExists)
-        {
-            return BadRequest("Invalid ProductionCoatingId");
-        }
-
-        var newProductionCalendaring = _mapper.Map<ProductionCalendaringDto, ProductionCalendaring>(payloadProductionCalendaring);
-
-        _dbContext.ProductionCalendarings.Add(newProductionCalendaring);
-        _dbContext.SaveChanges();
-
-        return CreatedAtAction(nameof(GetProductionCalendaringById), new { id = newProductionCalendaring.ProductionCalendaringId }, newProductionCalendaring);
-    }
-
-    [HttpPut("updateProductionCalendaring/{id}")]
-    public ActionResult UpdateProductionCalendaring(int id, UpdateProductionCalendaringDto payloadProductionCalendaring) {
-
-        var existingProductionCalendaring = _dbContext.ProductionCalendarings.Find(id);
-        if (existingProductionCalendaring == null)
-        {
-            return NotFound();
-        }
-
-        if (payloadProductionCalendaring.ProductionCoatingId.HasValue) {
-            var productionCoatingExists = _dbContext.Set<ProductionCoating>().Any(_ => _.ProductionCoatingId == payloadProductionCalendaring.ProductionCoatingId);
+            var productionCoatingExists = await _dbContext.Set<ProductionCoating>().AnyAsync(_ => _.ProductionCoatingId == payloadProductionCalendaring.ProductionCoatingId);
             if (!productionCoatingExists)
             {
                 return BadRequest("Invalid ProductionCoatingId");
             }
+
+            var newProductionCalendaring = _mapper.Map<ProductionCalendaringDto, ProductionCalendaring>(payloadProductionCalendaring);
+
+            await _dbContext.ProductionCalendarings.AddAsync(newProductionCalendaring);
+            await _dbContext.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetProductionCalendaringById), new { id = newProductionCalendaring.ProductionCalendaringId }, newProductionCalendaring);
         }
+        catch (Exception ex) {
 
-        _mapper.Map(payloadProductionCalendaring, existingProductionCalendaring);
-
-        _dbContext.ProductionCalendarings.Update(existingProductionCalendaring);
-        _dbContext.SaveChanges();
-
-        return Ok(existingProductionCalendaring);
+            return BadRequest(ex.Message);
+        }
     }
 
-    [HttpDelete("deleteProductionCalendaring/{id}")]
-    public ActionResult DeleteProductionCalendaring(int id)
-    {
-        var productionCalendaring = _dbContext.ProductionCalendarings.Find(id);
-        if (productionCalendaring == null)
-        {
-            return NotFound();
+    [HttpPut("updateProductionCalendaring/{id}")]
+    public async Task<IActionResult> UpdateProductionCalendaring(int id, UpdateProductionCalendaringDto payloadProductionCalendaring) {
+        try {
+
+            var existingProductionCalendaring = await _dbContext.ProductionCalendarings.FindAsync(id);
+            if (existingProductionCalendaring == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            if (payloadProductionCalendaring.ProductionCoatingId.HasValue) {
+                var productionCoatingExists = await _dbContext.Set<ProductionCoating>().AnyAsync(_ => _.ProductionCoatingId == payloadProductionCalendaring.ProductionCoatingId);
+                if (!productionCoatingExists)
+                {
+                    return BadRequest("Invalid ProductionCoatingId");
+                }
+            }
+
+            _mapper.Map(payloadProductionCalendaring, existingProductionCalendaring);
+
+            _dbContext.ProductionCalendarings.Update(existingProductionCalendaring);
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(existingProductionCalendaring);
         }
+        catch (Exception ex) {
 
-        _dbContext.ProductionCalendarings.Remove(productionCalendaring);
-        _dbContext.SaveChanges();
+            return BadRequest(ex.Message);
+        }
+    }
 
-        return NoContent();
+    [Authorize(Policy = IdentityConstants.PolicyName1)]
+    [HttpDelete("deleteProductionCalendaring/{id}")]
+    public async Task<IActionResult> DeleteProductionCalendaring(int id) {
+        try {
+
+            var productionCalendaring = await _dbContext.ProductionCalendarings.FindAsync(id);
+            if (productionCalendaring == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            _dbContext.ProductionCalendarings.Remove(productionCalendaring);
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
+        }
+        catch (Exception ex) {
+
+            return BadRequest(ex.Message);
+        }
     }
 }

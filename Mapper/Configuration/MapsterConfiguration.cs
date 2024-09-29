@@ -135,7 +135,7 @@ public static class MapsterConfiguration
         if (string.IsNullOrEmpty(timeString))
             return null;
 
-            if (TimeOnly.TryParseExact(timeString, "HH:mm", null, System.Globalization.DateTimeStyles.None, out var time))
+        if (TimeOnly.TryParseExact(timeString, "HH:mm", null, System.Globalization.DateTimeStyles.None, out var time))
         {
             return time;
         }

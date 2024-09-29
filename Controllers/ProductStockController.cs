@@ -1,14 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 using CompanyApp.Data;
 using CompanyApp.Models.Entity;
 using CompanyApp.Models.DTO.Create;
 using CompanyApp.Models.DTO.Update;
 using CompanyApp.Mapper.MapperService;
+using CompanyApp.Identity;
 
 namespace CompanyApp.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 public class ProductStockController : ControllerBase {
@@ -19,100 +22,131 @@ public class ProductStockController : ControllerBase {
     public ProductStockController(CompanyDbContext dbContext,  AppMapper mapper)
     {
         _dbContext = dbContext;
-         _mapper = mapper;
+        _mapper = mapper;
     }
 
     [HttpGet("allProductStocks")]
-    public ActionResult<IEnumerable<ProductStock>> GetProductStocks() {
+    public async Task<IActionResult> GetProductStocks() {
+        try {
 
-        var productStocks = _dbContext.ProductStocks.Include(_ => _.ProductDetails).Include(_ => _.Sizes).ToList();
+            var productStocks = await _dbContext.ProductStocks.Include(_ => _.ProductDetails).Include(_ => _.Sizes).ToListAsync();
 
-        return Ok(productStocks);
+            return Ok(productStocks);
+        }
+        catch (Exception ex) {
+
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpGet("getProductStock/{id}")]
-    public ActionResult GetProductStockById(Int16 id) {
+    public async Task<IActionResult> GetProductStockById(Int16 id) {
+        try {
 
-        var productStock = _dbContext.ProductStocks.Include(_ => _.ProductDetails).Include(_ => _.Sizes).FirstOrDefault(_ => _.ProductStockId == id);
+            var productStock = await _dbContext.ProductStocks.Include(_ => _.ProductDetails).Include(_ => _.Sizes).FirstOrDefaultAsync(_ => _.ProductStockId == id);
 
-        if (productStock == null)
-        {
-            return NotFound();
+            if (productStock == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            return Ok(productStock);
         }
+        catch (Exception ex) {
 
-        return Ok(productStock);
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPost("addProductStock")]
-    public ActionResult AddProductStock(ProductStockDto payloadProductStock) {
+    public async Task<IActionResult> AddProductStock(ProductStockDto payloadProductStock) {
+        try {
 
-        var productDetailExists = _dbContext.Set<ProductDetail>().Any(_ => _.ProductDetailId == payloadProductStock.ProductDetailId);
-        if (!productDetailExists)
-        {
-            return BadRequest("Invalid ProductDetailId");
-        }
-
-        if (payloadProductStock.SizeId.HasValue) {
-            var sizeExists = _dbContext.Set<Size>().Any(_ => _.SizeId == payloadProductStock.SizeId);
-            if (!sizeExists)
-            {
-                return BadRequest("Invalid SizeId");
-            }
-        }
-
-        var newProductStock = _mapper.Map<ProductStockDto, ProductStock>(payloadProductStock);
-
-        _dbContext.ProductStocks.Add(newProductStock);
-        _dbContext.SaveChanges();
-
-        return CreatedAtAction(nameof(GetProductStockById), new { id = newProductStock.ProductStockId }, newProductStock);
-    }
-
-    [HttpPut("updateProductStock/{id}")]
-    public ActionResult UpdateProductStock(Int16 id, UpdateProductStockDto payloadProductStock) {
-
-        var existingProductStock = _dbContext.ProductStocks.Find(id);
-        if (existingProductStock == null)
-        {
-            return NotFound();
-        }
-
-        if (payloadProductStock.ProductDetailId.HasValue) {
-            var productDetailExists = _dbContext.Set<ProductDetail>().Any(_ => _.ProductDetailId == payloadProductStock.ProductDetailId);
+            var productDetailExists = await _dbContext.Set<ProductDetail>().AnyAsync(_ => _.ProductDetailId == payloadProductStock.ProductDetailId);
             if (!productDetailExists)
             {
                 return BadRequest("Invalid ProductDetailId");
             }
-        }
 
-        if (payloadProductStock.SizeId.HasValue) {
-            var sizeExists = _dbContext.Set<Size>().Any(_ => _.SizeId == payloadProductStock.SizeId);
-            if (!sizeExists)
-            {
-                return BadRequest("Invalid SizeId");
+            if (payloadProductStock.SizeId.HasValue) {
+                var sizeExists = await _dbContext.Set<Size>().AnyAsync(_ => _.SizeId == payloadProductStock.SizeId);
+                if (!sizeExists)
+                {
+                    return BadRequest("Invalid SizeId");
+                }
             }
+
+            var newProductStock = _mapper.Map<ProductStockDto, ProductStock>(payloadProductStock);
+
+            await _dbContext.ProductStocks.AddAsync(newProductStock);
+            await _dbContext.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetProductStockById), new { id = newProductStock.ProductStockId }, newProductStock);
         }
+        catch (Exception ex) {
 
-        _mapper.Map(payloadProductStock, existingProductStock);
-
-        _dbContext.ProductStocks.Update(existingProductStock);
-        _dbContext.SaveChanges();
-
-        return Ok(existingProductStock);
+            return BadRequest(ex.Message);
+        }  
     }
 
-    [HttpDelete("deleteProductStock/{id}")]
-    public ActionResult DeleteProductStock(Int16 id)
-    {
-        var productDetail = _dbContext.ProductStocks.Find(id);
-        if (productDetail == null)
-        {
-            return NotFound();
+    [HttpPut("updateProductStock/{id}")]
+    public async Task<IActionResult> UpdateProductStock(Int16 id, UpdateProductStockDto payloadProductStock) {
+        try {
+
+            var existingProductStock = await _dbContext.ProductStocks.FindAsync(id);
+            if (existingProductStock == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            if (payloadProductStock.ProductDetailId.HasValue) {
+                var productDetailExists = await _dbContext.Set<ProductDetail>().AnyAsync(_ => _.ProductDetailId == payloadProductStock.ProductDetailId);
+                if (!productDetailExists)
+                {
+                    return BadRequest("Invalid ProductDetailId");
+                }
+            }
+
+            if (payloadProductStock.SizeId.HasValue) {
+                var sizeExists = _dbContext.Set<Size>().Any(_ => _.SizeId == payloadProductStock.SizeId);
+                if (!sizeExists)
+                {
+                    return BadRequest("Invalid SizeId");
+                }
+            }
+
+            _mapper.Map(payloadProductStock, existingProductStock);
+
+            _dbContext.ProductStocks.Update(existingProductStock);
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(existingProductStock);
         }
+        catch (Exception ex) {
 
-        _dbContext.ProductStocks.Remove(productDetail);
-        _dbContext.SaveChanges();
+            return BadRequest(ex.Message);
+        }
+    }
 
-        return NoContent();
+    [Authorize(Policy = IdentityConstants.PolicyName1)]
+    [HttpDelete("deleteProductStock/{id}")]
+    public async Task<IActionResult> DeleteProductStock(Int16 id) {
+        try {
+
+            var productDetail = await _dbContext.ProductStocks.FindAsync(id);
+            if (productDetail == null)
+            {
+                return NotFound("Data Not Found");
+            }
+
+            _dbContext.ProductStocks.Remove(productDetail);
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
+        }
+        catch (Exception ex) {
+
+            return BadRequest(ex.Message);
+        }
     }
 }

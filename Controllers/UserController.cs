@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -28,43 +29,55 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("SignUp")]
-    public ActionResult Register(RegisterUserDto registerUser) {
+    public async Task<IActionResult> Register(RegisterUserDto registerUser) {
+        try {
 
-        var user = _dbContext.Users.FirstOrDefault(_ => _.Username == registerUser.Username || _.Email == registerUser.Email);
-        if (user != null) {
-            return BadRequest("User already exists");
+            var user = await _dbContext.Users.FirstOrDefaultAsync(_ => _.Username == registerUser.Username || _.Email == registerUser.Email);
+            if (user != null) {
+                return BadRequest("User already exists");
+            }
+
+            var hasRequiredChars = new Regex(@"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}");
+            if (!hasRequiredChars.IsMatch(registerUser.Password)) {
+                return BadRequest("Password must be at least 8 characters and should contain the following: upper case (A-Z), lower case (a-z), number (0-9) and special character (e.g. !@#$%^&*)");
+            }
+
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(registerUser.Password);
+            registerUser.Password = hashedPassword;
+
+            var newUser = _mapper.Map<RegisterUserDto, User>(registerUser);
+
+            await _dbContext.Users.AddAsync(newUser);
+            await _dbContext.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetUserById), new { id = newUser.UserId }, newUser);
         }
+        catch (Exception ex) {
 
-        var hasRequiredChars = new Regex(@"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}");
-        if (!hasRequiredChars.IsMatch(registerUser.Password)) {
-            return BadRequest("Password must be at least 8 characters and should contain the following: upper case (A-Z), lower case (a-z), number (0-9) and special character (e.g. !@#$%^&*)");
+            return BadRequest(ex.Message);
         }
-
-        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(registerUser.Password);
-        registerUser.Password = hashedPassword;
-
-        var newUser = _mapper.Map<RegisterUserDto, User>(registerUser);
-
-        _dbContext.Users.Add(newUser);
-        _dbContext.SaveChanges();
-
-        return CreatedAtAction(nameof(GetUserById), new { id = newUser.UserId }, newUser);
     }
 
     [HttpPost("SignIn")]
-    public ActionResult Login(LoginUserDto loginUser) {
+    public async Task<IActionResult> Login(LoginUserDto loginUser) {
+        try {
 
-        var user = _dbContext.Users.FirstOrDefault(_ => _.Username == loginUser.Username);
-        if (user == null) {
-            return NotFound();
-        }
-            
-        if (!BCrypt.Net.BCrypt.Verify(loginUser.Password, user.Password)) {
-            return BadRequest("Wrong Password");
-        }
+            var user = await _dbContext.Users.FirstOrDefaultAsync(_ => _.Username == loginUser.Username);
+            if (user == null) {
+                return NotFound("User Not Found");
+            }
+                
+            if (!BCrypt.Net.BCrypt.Verify(loginUser.Password, user.Password)) {
+                return BadRequest("Wrong Password");
+            }
 
-        var jwt = GenerateJwtToken(user);
-        return Ok(new {jwt});
+            var jwt = GenerateJwtToken(user);
+            return Ok(new {jwt});
+        }
+        catch (Exception ex) {
+
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpGet("allUsers")]
@@ -82,7 +95,7 @@ public class UserController : ControllerBase
 
         if (user == null)
         {
-            return NotFound();
+            return NotFound("User Not Found");
         }
 
         return Ok(user);
