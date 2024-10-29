@@ -29,7 +29,19 @@ public class ReceiptController : ControllerBase {
     public async Task<IActionResult> GetReceipts() {
         try {
 
-            var receipts = await _dbContext.Receipts.Include(_ => _.Suppliers).ToListAsync();
+            var receipts = await _dbContext.Receipts
+                                            .Include(_ => _.Suppliers)
+                                            .Select(r => new 
+                                                    {
+                                                        r.ReceiptId,
+                                                        r.ReceiptDate,
+                                                        r.Suppliers.SupplierId,
+                                                        r.Suppliers.SupplierName,
+                                                        r.BillNo,
+                                                        r.BillDate,
+                                                        r.BillValue
+                                                    })
+                                            .ToListAsync();
 
             return Ok(receipts);
         }

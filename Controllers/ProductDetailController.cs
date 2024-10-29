@@ -29,7 +29,16 @@ public class ProductDetailController : ControllerBase {
     public async Task<IActionResult> GetProductDetails() {
         try {
 
-            var productDetails = await _dbContext.ProductDetails.Include(_ => _.Products).ToListAsync();
+            var productDetails = await _dbContext.ProductDetails
+                                                .Include(_ => _.Products)
+                                                .Select(pd => new 
+                                                    {
+                                                        pd.ProductDetailId,
+                                                        pd.Products.ProductId,
+                                                        pd.Products.ProductCategory,
+                                                        pd.Variant
+                                                    })
+                                                .ToListAsync();
 
             return Ok(productDetails);
         }
@@ -100,7 +109,7 @@ public class ProductDetailController : ControllerBase {
                     return BadRequest("Invalid ProductId");
                 }
             }
-
+            
             _mapper.Map(payloadProductDetail, existingProductDetail);
 
             _dbContext.ProductDetails.Update(existingProductDetail);

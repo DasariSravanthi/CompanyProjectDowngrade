@@ -29,7 +29,21 @@ public class ProductStockController : ControllerBase {
     public async Task<IActionResult> GetProductStocks() {
         try {
 
-            var productStocks = await _dbContext.ProductStocks.Include(_ => _.ProductDetails).Include(_ => _.Sizes).ToListAsync();
+            var productStocks = await _dbContext.ProductStocks
+                                                .Include(_ => _.ProductDetails)
+                                                .Include(_ => _.Sizes)
+                                                .Select(ps => new 
+                                                    {
+                                                        ps.ProductStockId,
+                                                        ps.ProductDetails.ProductDetailId,
+                                                        ps.ProductDetails.Variant,
+                                                        ps.GSM,
+                                                        SizeId = ps.Sizes != null ? ps.Sizes.SizeId : (byte?)null,
+                                                        SizeInMM = ps.Sizes != null ? ps.Sizes.SizeInMM : (int?)null,
+                                                        ps.WeightInKgs,
+                                                        ps.RollCount
+                                                    })
+                                                .ToListAsync();
 
             return Ok(productStocks);
         }
