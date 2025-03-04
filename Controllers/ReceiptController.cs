@@ -31,6 +31,7 @@ public class ReceiptController : ControllerBase {
 
             var receipts = await _dbContext.Receipts
                                             .Include(_ => _.Suppliers)
+                                            .Include(_ => _.ReceiptDetails)
                                             .Select(r => new 
                                                     {
                                                         r.ReceiptId,
@@ -39,7 +40,15 @@ public class ReceiptController : ControllerBase {
                                                         r.Suppliers.SupplierName,
                                                         r.BillNo,
                                                         r.BillDate,
-                                                        r.BillValue
+                                                        r.BillValue,
+                                                        ReceiptDetails = r.ReceiptDetails.Select(rd => new
+                                                        {
+                                                            rd.ReceiptDetailId,
+                                                            rd.ProductStockId,
+                                                            rd.Weight,
+                                                            rd.UnitRate,
+                                                            rd.RollCount
+                                                        }),
                                                     })
                                             .ToListAsync();
 
